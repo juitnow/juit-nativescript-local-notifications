@@ -6,6 +6,7 @@ notifications on iOS and Android.
 * [Usage](#usage)
 * [Scheduling notifications](#scheduling-notifications)
 * [Canceling a scheduled notification](#canceling-a-scheduled-notification)
+* [Subscribing to notifications](#subscribing-to-notifications)
 * [Copyright Notice](NOTICE.md)
 * [License](LICENSE.md)
 
@@ -47,3 +48,31 @@ The `schedule(...)` method will return a `Promise` which will resolve to the
 
 
 ## Canceling a scheduled notification
+
+A scheduled notification can be _canceled_ (and therefore will no longer be
+presented to the user) by using the `cancel(...)` method:
+
+```typescript
+localNotifications.cancel(notificationId)
+```
+
+
+## Subscribing to notifications
+
+When a notification is opened by a user, the `localNotification` event will be
+emitted by the `LocalNotifications` instance. The usual `on(...)`, `once(...)`
+and `off(...)` methods are available to manage subscription:
+
+```typescript
+localNotifications.on('localNotification', (notification) => {
+  console.log('Notification opened', notification)
+})
+
+// Notification opened: {
+//   id: '0ecfd51b-6e83-46a9-8b6d-61632bf91db3',
+//   title: 'The title',
+//   message: 'The message for the notification...',
+//   data: { ... }
+// }
+}
+```
