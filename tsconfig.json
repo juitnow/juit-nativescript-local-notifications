@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "es2017"
+    ],
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "noEmitHelpers": true,
+    "importHelpers": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "plugins": [ {
+      "transform": "@nativescript/webpack/transformers/ns-transform-native-classes",
+      "type": "raw"
+    } ],
+  },
+  "include": [
+    "src/**/*.ts",
+    "types/*.d.ts"
+  ],
+  "exclude": [
+    "platforms",
+    "node_modules"
+  ]
+}
