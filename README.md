@@ -74,5 +74,4 @@ localNotifications.on('localNotification', (notification) => {
 //   message: 'The message for the notification...',
 //   data: { ... }
 // }
-}
 ```
