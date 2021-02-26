@@ -81,21 +81,10 @@ export class LocalNotifications extends AbstractLocalNotifications {
 
   scheduleNative(notification: LocalNotificationRequest, seconds: number) {
     return new Promise<string>((resolve, reject) => {
-      const { title, message } = notification
-
-      const content = UNMutableNotificationContent.new()
-      content.title = title
-      content.body = message
-
-      const data = JSON.stringify(notification.data || {})
-      content.userInfo = NSDictionary.dictionaryWithObjectsForKeys([ data ], [ 'data' ])
-
-      const trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeIntervalRepeats(seconds, false)
-
       // eslint-disable-next-line new-cap
       const id = NSUUID.UUID().UUIDString.toUpperCase()
-      const request = UNNotificationRequest.requestWithIdentifierContentTrigger(id, content, trigger)
 
+      // First of all we request the permission, before anything else...
       debug('Requesting permission for notification', id)
       this.notificationCenter.requestAuthorizationWithOptionsCompletionHandler(
         UNAuthorizationOptions.Alert | UNAuthorizationOptions.Sound,
@@ -103,6 +92,23 @@ export class LocalNotifications extends AbstractLocalNotifications {
           if (error) return reject(error)
           if (! result) return reject(new Error('Local Notification authorization request denied'))
 
+          // Now we can start building our notification
+          const { title, message } = notification
+
+          // Title and body come straight from the request
+          const content = UNMutableNotificationContent.new()
+          content.title = title
+          content.body = message
+
+          // Data always defaults to {} the empty object
+          const data = JSON.stringify(notification.data || {})
+          content.userInfo = NSDictionary.dictionaryWithObjectsForKeys([ data ], [ 'data' ])
+
+          // Create a trigger, the iOS notification request...
+          const trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeIntervalRepeats(seconds, false)
+          const request = UNNotificationRequest.requestWithIdentifierContentTrigger(id, content, trigger)
+
+          // ... and finaly schedule natively!
           debug('Scheduling notification', id, 'in', seconds, 'sec.')
           this.notificationCenter.addNotificationRequestWithCompletionHandler(request, (error) => {
             if (error) return reject(error)
