@@ -1,13 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
-import { Observable } from '@nativescript/core'
-
 /**
  * The `LocalNotificationRequest` interface describes a request to display
  * a local notification to the user.
  */
 export interface LocalNotificationRequest {
-  title: string,
+  title?: string,
   message: string,
   data?: Record<string, any>,
 }
@@ -83,5 +79,6 @@ export class LocalNotifications {
    */
   constructor(options?: LocalNotificationsOptions) {
     // Placeholder constructor for superclasses
+    options // stop complaining, eslint!
   }
 }

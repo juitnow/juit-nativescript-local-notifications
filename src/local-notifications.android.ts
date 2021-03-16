@@ -36,7 +36,7 @@ class LocalNotificationsWorker extends androidx.work.Worker {
     debug('Presenting notification', id)
 
     try {
-      const title = input.getString('title')
+      const title = input.getString('title') || undefined
       const message = input.getString('message')
       const data = input.getString('data')
       const activity = input.getString('activity')
@@ -47,20 +47,22 @@ class LocalNotificationsWorker extends androidx.work.Worker {
       const intent = new android.content.Intent(context, java.lang.Class.forName(activity))
       intent.setAction(action)
       intent.putExtra('id', id.toString())
-      intent.putExtra('title', title)
       intent.putExtra('message', message)
       intent.putExtra('data', data)
+
+      if (title) intent.putExtra('title', title)
 
       const pendingIntent = android.app.PendingIntent.getActivity(context, 0, intent, 0)
 
       const builder = new androidx.core.app.NotificationCompat.Builder(context, CHANNEL_ID)
         .setSmallIcon(icon)
         .setColor(color)
-        .setContentTitle(title)
         .setContentText(message)
         .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
         .setContentIntent(pendingIntent)
         .setAutoCancel(true)
+
+      if (title) builder.setContentTitle(title)
 
       const manager = androidx.core.app.NotificationManagerCompat.from(context)
 
@@ -177,7 +179,7 @@ export class LocalNotifications extends AbstractLocalNotifications {
       if (! this._workManager) throw new Error('Not yet initialized (workManager)')
 
       const data = new androidx.work.Data.Builder()
-        .putString('title', notification.title)
+        .putString('title', notification.title || '')
         .putString('message', notification.message)
         .putString('data', JSON.stringify(notification.data || {}))
         .putString('activity', Application.android.startActivity.getClass().getName())

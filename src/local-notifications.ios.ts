@@ -97,7 +97,7 @@ export class LocalNotifications extends AbstractLocalNotifications {
 
           // Title and body come straight from the request
           const content = UNMutableNotificationContent.new()
-          content.title = title
+          if (title) content.title = title
           content.body = message
 
           // Data always defaults to {} the empty object
