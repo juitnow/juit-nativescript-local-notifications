@@ -19,6 +19,9 @@ const CHANNEL_ID = 'local-notifications'
 const CHANNEL_NAME = 'Local Notifications'
 const CHANNEL_IMPORTANCE = android.app.NotificationManager.IMPORTANCE_DEFAULT
 
+/* An ever increasing counter for pending intents and notification IDs */
+let counter = Date.now()
+
 /* Prefix debug and error output with '(android)' */
 const debug = abstractDebug.bind(null, '(android)')
 
@@ -53,7 +56,7 @@ class LocalNotificationsWorker extends androidx.work.Worker {
 
       if (title) intent.putExtra('title', title)
 
-      const pendingIntent = android.app.PendingIntent.getActivity(context, 0, intent, 0)
+      const pendingIntent = android.app.PendingIntent.getActivity(context, ++ counter, intent, 0)
 
       const builder = new androidx.core.app.NotificationCompat.Builder(context, CHANNEL_ID)
         .setSmallIcon(icon)
@@ -67,7 +70,7 @@ class LocalNotificationsWorker extends androidx.work.Worker {
 
       const manager = androidx.core.app.NotificationManagerCompat.from(context)
 
-      manager.notify(id.toString(), id.hashCode(), builder.build())
+      manager.notify(id.toString(), ++ counter, builder.build())
 
       return androidx.work.ListenableWorker.Result.success()
     } catch (error) {
