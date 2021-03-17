@@ -75,3 +75,7 @@ localNotifications.on('localNotification', (notification) => {
 //   data: { ... }
 // }
 ```
+
+> **NOTE**: Notification handlers are _shared_ amongst all `localNotifications`
+> instances. Handlers subscribing to notifications on a specific instance will
+> also be notified of notifications scheduled from other instances.
