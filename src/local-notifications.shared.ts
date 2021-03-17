@@ -58,6 +58,7 @@ export interface LocalNotifications {
   schedule(notification: LocalNotificationRequest, date: Date): Promise<string | void>
   /** Cancel a request to display a local notification associated with an ID */
   cancel(id: string): Promise<void>
+
   /** Set up a handler called every time a local notification is activated. */
   on(event: 'localNotification', handler: LocalNotificationHandler): this
   /** Set up a handler called once when a local notification is activated. */

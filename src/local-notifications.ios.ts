@@ -1,12 +1,12 @@
 import {
   LocalNotification,
-  LocalNotificationHandler,
   LocalNotificationRequest,
 } from './local-notifications.shared'
 
 import {
   AbstractLocalNotifications,
   debug as abstractDebug,
+  sharedNotificationHandler,
 } from './local-notifications.abstract'
 
 /* Prefix debug and error output with '(ios)' */
@@ -16,14 +16,6 @@ const debug = abstractDebug.bind(null, '(ios)')
 @NativeClass()
 class LocalNotificationsDelegate extends NSObject implements UNUserNotificationCenterDelegate {
   public static ObjCProtocols = [ UNUserNotificationCenterDelegate ];
-
-  private _notificationHandler?: LocalNotificationHandler
-
-  constructor(notificationHandler?: LocalNotificationHandler) {
-    super()
-    debug('Constructed delegate', !! notificationHandler)
-    this._notificationHandler = notificationHandler
-  }
 
   userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler(
     center: UNUserNotificationCenter,
@@ -50,12 +42,7 @@ class LocalNotificationsDelegate extends NSObject implements UNUserNotificationC
       }
     }
 
-    try {
-      this._notificationHandler?.(notification)
-    } catch (error) {
-      error('Error handling notification', notification.id, error)
-    }
-
+    sharedNotificationHandler(notification)
     completionHandler()
   }
 
@@ -76,7 +63,7 @@ export class LocalNotifications extends AbstractLocalNotifications {
     super()
 
     this.notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
-    this.notificationCenter.delegate = new LocalNotificationsDelegate(this._handler)
+    this.notificationCenter.delegate = new LocalNotificationsDelegate()
   }
 
   scheduleNative(notification: LocalNotificationRequest, seconds: number) {
