@@ -199,7 +199,7 @@ export class LocalNotifications extends AbstractLocalNotifications {
 
       debug('Scheduling notification', request.getId(), 'in', seconds, 'sec.')
 
-      this._workManager?.enqueue(request)
+      this._workManager.enqueue(request)
       resolve(request.getId().toString())
     })
   }

@@ -128,5 +128,5 @@ export abstract class AbstractLocalNotifications extends LocalNotifications {
 
   abstract cancel(id: string): Promise<void>
 
-  protected abstract scheduleNative(notification: LocalNotificationRequest, seconds: number): Promise<string>
+  protected abstract scheduleNative(notification: LocalNotificationRequest, seconds: number): Promise<string | void>
 }

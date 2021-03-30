@@ -77,7 +77,10 @@ export class LocalNotifications extends AbstractLocalNotifications {
         UNAuthorizationOptions.Alert | UNAuthorizationOptions.Sound,
         (result, error) => {
           if (error) return reject(error)
-          if (! result) return reject(new Error('Local Notification authorization request denied'))
+          if (! result) {
+            debug('Local Notification authorization request denied')
+            return
+          }
 
           // Now we can start building our notification
           const { title, message } = notification
