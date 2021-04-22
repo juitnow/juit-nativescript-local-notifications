@@ -61,11 +61,11 @@ export interface LocalNotifications {
   cancel(id: string): Promise<void>
 
   /** Set up a handler called every time a local notification is activated. */
-  on(event: 'localNotification', handler: LocalNotificationHandler): this
+  on(event: 'notification', handler: LocalNotificationHandler): this
   /** Set up a handler called once when a local notification is activated. */
-  once(event: 'localNotification', handler: LocalNotificationHandler): this
+  once(event: 'notification', handler: LocalNotificationHandler): this
   /** Remove the specified handler. */
-  off(event: 'localNotification', handler: LocalNotificationHandler): this
+  off(event: 'notification', handler: LocalNotificationHandler): this
 }
 
 /**
