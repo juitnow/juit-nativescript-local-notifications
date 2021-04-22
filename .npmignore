@@ -1,5 +1,2 @@
 *.tgz
 .*
-src/
-tsconfig.json
-types/
