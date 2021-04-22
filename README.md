@@ -59,12 +59,12 @@ localNotifications.cancel(notificationId)
 
 ## Subscribing to notifications
 
-When a notification is opened by a user, the `localNotification` event will be
+When a notification is opened by a user, the `notification` event will be
 emitted by the `LocalNotifications` instance. The usual `on(...)`, `once(...)`
 and `off(...)` methods are available to manage subscription:
 
 ```typescript
-localNotifications.on('localNotification', (notification) => {
+localNotifications.on('notification', (notification) => {
   console.log('Notification opened', notification)
 })
 
@@ -75,7 +75,3 @@ localNotifications.on('localNotification', (notification) => {
 //   data: { ... }
 // }
 ```
-
-> **NOTE**: Notification handlers are _shared_ amongst all `localNotifications`
-> instances. Handlers subscribing to notifications on a specific instance will
-> also be notified of notifications scheduled from other instances.
