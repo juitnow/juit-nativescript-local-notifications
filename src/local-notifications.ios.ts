@@ -28,17 +28,16 @@ class LocalNotificationsDelegate extends NSObject implements UNUserNotificationC
       id: response.notification.request.identifier,
       title: response.notification.request.content.title,
       message: response.notification.request.content.body,
+      data: {},
     }
 
     const dictionary = response.notification.request.content.userInfo
     if (dictionary) {
-      const data = dictionary.valueForKey('data')
-      if (data) {
-        try {
-          notification.data = JSON.parse(data)
-        } catch (error) {
-          console.log('Error parsing data for notification', notification.id, error)
-        }
+      const keys = dictionary.allKeys
+      for (let i = 0; i < keys.count; i ++) {
+        const key = keys.objectAtIndex(i)
+        const value = dictionary.valueForKey(key)
+        notification.data[key] = value
       }
     }
 
@@ -90,9 +89,8 @@ export class LocalNotifications extends AbstractLocalNotifications {
           if (title) content.title = title
           content.body = message
 
-          // Data always defaults to {} the empty object
-          const data = JSON.stringify(notification.data || {})
-          content.userInfo = NSDictionary.dictionaryWithObjectsForKeys([ data ], [ 'data' ])
+          // Set the "userInfo" dictionary from our notification data
+          content.userInfo = NSDictionary.dictionaryWithDictionary(<any> (notification.data || {}))
 
           // Create a trigger, the iOS notification request...
           const trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeIntervalRepeats(seconds, false)
