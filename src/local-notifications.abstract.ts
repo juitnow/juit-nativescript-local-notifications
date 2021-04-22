@@ -18,39 +18,11 @@ export function debug(...args: any[]) {
 }
 
 /* ========================================================================== *
- * NOTIFICATION HANDLING                                                      *
- * -------------------------------------------------------------------------- *
- * The handler that will be used to handle all notifications must be "static" *
- * (not an instance variable). This is because iOS seem to re-instantiate its *
- * `LocalNotificationsDelegate` at will, and loosing instance variables.      *
- *                                                                            *
- * I still have to figure out _how_ that happens (constructor doesn't seem to *
- * be called, and we specify the delegate instance), but keeping a big shared *
- * handler solves the problem for now.                                        *
- *                                                                            *
- * The real, only issue with this approach is that, while we can have as many *
- * instances of `LocalNotifications` as we want, a listener registered on one *
- * specific instance will be notified also of notifications from the others.  *
- *                                                                            *
- * I guess we can live with this...                                           *
- * ========================================================================== */
-
-const sharedNotificationHandlers = new Set<LocalNotificationHandler>()
-
-export const sharedNotificationHandler: LocalNotificationHandler =
-  (notification: LocalNotification) =>
-    sharedNotificationHandlers.forEach((handler) => {
-      try {
-        handler(notification)
-      } catch (error) {
-        console.log('Error handling local notification', notification.id, error)
-      }
-    })
-
-/* ========================================================================== *
  * MAIN LOCAL NOTIFICATIONS ABSTRACTION                                       *
  * ========================================================================== */
 export abstract class AbstractLocalNotifications extends LocalNotifications {
+  private handlers = new Set<LocalNotificationHandler>()
+
   constructor() {
     super()
   }
@@ -92,32 +64,42 @@ export abstract class AbstractLocalNotifications extends LocalNotifications {
    | EVENTS                                                                   |
    * ------------------------------------------------------------------------ */
 
-  on(event: 'localNotification', handler: LocalNotificationHandler): this {
+  protected notify(notification: LocalNotification) {
+    this.handlers.forEach((handler) => {
+      try {
+        handler(notification)
+      } catch (error) {
+        console.log('Error handling local notification', notification.id, error)
+      }
+    })
+  }
+
+  on(event: 'notification', handler: LocalNotificationHandler): this {
     if (typeof handler !== 'function') throw new Error('Handler must be a function')
-    if (event != 'localNotification') return this
-    sharedNotificationHandlers.add(handler)
+    if (event != 'notification') return this
+    this.handlers.add(handler)
     return this
   }
 
-  once(event: 'localNotification', handler: LocalNotificationHandler): this {
+  once(event: 'notification', handler: LocalNotificationHandler): this {
     // Wrap the handler ensuring the wrapper is removed after invocation
     const wrapper: LocalNotificationHandler = (notification: LocalNotification) => {
       try {
         handler(notification)
       } finally {
-        this.off('localNotification', wrapper)
+        this.off('notification', wrapper)
       }
     }
     // Enable enable dispatching on the wrapper
-    this.on('localNotification', wrapper)
+    this.on('notification', wrapper)
 
     // All done
     return this
   }
 
-  off(event: 'localNotification', handler: LocalNotificationHandler): this {
-    if (event != 'localNotification') return this
-    sharedNotificationHandlers.delete(handler)
+  off(event: 'notification', handler: LocalNotificationHandler): this {
+    if (event != 'notification') return this
+    this.handlers.delete(handler)
     return this
   }
 
