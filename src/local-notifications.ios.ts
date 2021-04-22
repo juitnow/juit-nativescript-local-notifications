@@ -6,64 +6,80 @@ import {
 import {
   AbstractLocalNotifications,
   debug as abstractDebug,
-  sharedNotificationHandler,
 } from './local-notifications.abstract'
+
+import {
+  DelegateObserver,
+  SharedNotificationDelegate,
+} from '@nativescript/shared-notification-delegate'
 
 /* Prefix debug and error output with '(ios)' */
 const debug = abstractDebug.bind(null, '(ios)')
 
-// eslint-disable-next-line new-cap
-@NativeClass()
-class LocalNotificationsDelegate extends NSObject implements UNUserNotificationCenterDelegate {
-  public static ObjCProtocols = [ UNUserNotificationCenterDelegate ];
+export class LocalNotifications extends AbstractLocalNotifications implements DelegateObserver {
+  constructor() {
+    super()
+    SharedNotificationDelegate.addObserver(this)
+  }
+
+  /* ======================================================================== */
+
+  private get notificationCenter() {
+    return UNUserNotificationCenter.currentNotificationCenter()
+  }
+
+  /* ======================================================================== */
 
   userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler(
     center: UNUserNotificationCenter,
     response: UNNotificationResponse,
     completionHandler: () => void,
-  ) {
-    debug('Handling notification', response.notification.request.identifier)
+    next: () => void,
+  ): void {
+    const dictionary = response.notification?.request?.content?.userInfo
+    if (dictionary?.valueForKey('$juitLocalNotification') != true) {
+      debug('Ignoring notification', response.notification?.request?.identifier)
+      next()
+    } else {
+      debug('Handling notification', response.notification.request.identifier)
 
-    const notification: LocalNotification = {
-      id: response.notification.request.identifier,
-      title: response.notification.request.content.title,
-      message: response.notification.request.content.body,
-      data: {},
-    }
+      const notification: LocalNotification = {
+        id: response.notification.request.identifier,
+        title: response.notification.request.content.title,
+        message: response.notification.request.content.body,
+        data: {},
+      }
 
-    const dictionary = response.notification.request.content.userInfo
-    if (dictionary) {
       const keys = dictionary.allKeys
       for (let i = 0; i < keys.count; i ++) {
         const key = keys.objectAtIndex(i)
+        if (key === '$juitLocalNotification') continue
         const value = dictionary.valueForKey(key)
         notification.data[key] = value
       }
-    }
 
-    sharedNotificationHandler(notification)
-    completionHandler()
+      this.notify(notification)
+      completionHandler()
+    }
   }
 
   userNotificationCenterWillPresentNotificationWithCompletionHandler(
     center: UNUserNotificationCenter,
     notification: UNNotification,
     completionHandler: (options: UNNotificationPresentationOptions) => void,
-  ) {
-    debug('Presenting notification', notification.request.identifier)
-    completionHandler(UNNotificationPresentationOptions.Alert | UNNotificationPresentationOptions.Sound)
+    next: () => void,
+  ): void {
+    const dictionary = notification?.request?.content?.userInfo
+    if (dictionary?.valueForKey('$juitLocalNotification') != true) {
+      debug('Ignoring notification', notification?.request?.identifier)
+      next()
+    } else {
+      debug('Presenting notification', notification.request.identifier)
+      completionHandler(UNNotificationPresentationOptions.Alert | UNNotificationPresentationOptions.Sound)
+    }
   }
-}
 
-export class LocalNotifications extends AbstractLocalNotifications {
-  private notificationCenter: UNUserNotificationCenter
-
-  constructor() {
-    super()
-
-    this.notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
-    this.notificationCenter.delegate = new LocalNotificationsDelegate()
-  }
+  /* ======================================================================== */
 
   scheduleNative(notification: LocalNotificationRequest, seconds: number) {
     return new Promise<string>((resolve, reject) => {
@@ -90,7 +106,11 @@ export class LocalNotifications extends AbstractLocalNotifications {
           content.body = message
 
           // Set the "userInfo" dictionary from our notification data
-          content.userInfo = NSDictionary.dictionaryWithDictionary(<any> (notification.data || {}))
+          // NOTE: keep this as a local variable otherwise assigment won't work
+          const dictionary = NSMutableDictionary.dictionary<string, string | number | boolean>()
+          dictionary.setValueForKey(true, '$juitLocalNotification')
+          if (notification.data) dictionary.addEntriesFromDictionary(<any> notification.data)
+          content.userInfo = dictionary
 
           // Create a trigger, the iOS notification request...
           const trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeIntervalRepeats(seconds, false)
