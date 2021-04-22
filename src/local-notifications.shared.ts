@@ -5,7 +5,7 @@
 export interface LocalNotificationRequest {
   title?: string,
   message: string,
-  data?: Record<string, any>,
+  data?: Record<string, string | number | boolean>,
 }
 
 /**
@@ -14,6 +14,7 @@ export interface LocalNotificationRequest {
  */
 export interface LocalNotification extends LocalNotificationRequest {
   id: string,
+  data: Record<string, string | number | boolean>
 }
 
 /**
