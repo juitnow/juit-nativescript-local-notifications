@@ -9,7 +9,6 @@ import {
 import {
   AbstractLocalNotifications,
   debug as abstractDebug,
-  sharedNotificationHandler,
 } from './local-notifications.abstract'
 
 import { Application } from '@nativescript/core'
@@ -174,7 +173,7 @@ export class LocalNotifications extends AbstractLocalNotifications {
 
     const notification: LocalNotification = { id, title, message, data }
     debug('Handling notification', id)
-    sharedNotificationHandler(notification)
+    this.notify(notification)
   }
 
   scheduleNative(notification: LocalNotificationRequest, seconds: number) {
