@@ -1,3 +1,12 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
+
+/** A type describing all allowable JSON primitives */
+export type JSONPrimitive = string | number | boolean | null
+/** A TypeScript representation of a JSON object */
+export interface JSONObject extends Record<string, JSONPrimitive | JSONArray | JSONObject> {}
+/** A TypeScript representation of a JSON array */
+export interface JSONArray extends Array<JSONPrimitive | JSONArray | JSONObject> {}
+
 /**
  * The `LocalNotificationRequest` interface describes a request to display
  * a local notification to the user.
@@ -5,7 +14,7 @@
 export interface LocalNotificationRequest {
   title?: string,
   message: string,
-  data?: Record<string, string | number | boolean>,
+  data?: JSONObject,
 }
 
 /**
@@ -14,7 +23,7 @@ export interface LocalNotificationRequest {
  */
 export interface LocalNotification extends LocalNotificationRequest {
   id: string,
-  data: Record<string, string | number | boolean>
+  data: JSONObject
 }
 
 /**
@@ -69,18 +78,18 @@ export interface LocalNotifications {
 }
 
 /**
- * The `LocalNotifications` interface defines a way to schedule and cancel
- * local notifications.
+ * The `LocalNotifications` class provides a generic constructor for.
  */
-export class LocalNotifications {
+export class LocalNotifications implements LocalNotifications {
   /** A flag to enable/disable debug */
   static debugEnabled: boolean
+  /** The options we were constructed with */
+  readonly options: Readonly<LocalNotificationsOptions>
 
   /**
    * Construct a new `LocalNotifications` instance.
    */
   constructor(options?: LocalNotificationsOptions) {
-    // Placeholder constructor for superclasses
-    options // stop complaining, eslint!
+    this.options = Object.freeze(Object.assign({}, options))
   }
 }
