@@ -3,6 +3,7 @@ import {
   LocalNotificationRequest,
   LocalNotification,
   LocalNotifications,
+  LocalNotificationsOptions,
 } from './local-notifications.shared'
 
 /* ========================================================================== *
@@ -23,8 +24,8 @@ export function debug(...args: any[]) {
 export abstract class AbstractLocalNotifications extends LocalNotifications {
   private handlers = new Set<LocalNotificationHandler>()
 
-  constructor() {
-    super()
+  constructor(options?: LocalNotificationsOptions) {
+    super(options)
   }
 
   /* ------------------------------------------------------------------------ *
