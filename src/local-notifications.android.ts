@@ -87,18 +87,18 @@ export class LocalNotifications extends AbstractLocalNotifications {
   private _color = 0
   private _icon = 0
 
-  constructor(options: LocalNotificationsOptions = {}) {
-    super()
+  constructor(options?: LocalNotificationsOptions) {
+    super(options)
 
     // We might be constructed _before_ the app is, so wait for launch if we
     // do not yet have a context we can use
     if (Application.android.context) {
       debug('Initializing on construction')
-      this._init(Application.android.context, options)
+      this._init(Application.android.context)
     } else {
       Application.on('launch', () => {
         debug('Initializing on application launch')
-        this._init(Application.android.context, options)
+        this._init(Application.android.context)
       })
     }
 
@@ -122,7 +122,7 @@ export class LocalNotifications extends AbstractLocalNotifications {
     })
   }
 
-  private _init(context: android.content.Context, options: LocalNotificationsOptions) {
+  private _init(context: android.content.Context) {
     // Ensure we have a notification channel to deliver our local notifications
     // to users. This needs to be guarded for versions >= OREO (API v. 26).
     // Here we use the _number_ rather than "android.os.Build.VERSION.O" as this
@@ -139,7 +139,7 @@ export class LocalNotifications extends AbstractLocalNotifications {
     }
 
     // Icon and color
-    const { androidIcon, androidColor } = options
+    const { androidIcon, androidColor } = this.options
 
     // Get the resource (if any) or the default app icon (which will look bad)
     const info = context.getApplicationInfo()
