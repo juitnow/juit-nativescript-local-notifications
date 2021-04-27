@@ -1,0 +1,38 @@
+name: Release Package
+
+on:
+  push:
+    branches: [trunk]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Build the package
+        id: build
+        run: |
+          npm clean-install
+          npm run build
+          node -e 'console.log("::set-output name=version::" + require("./package.json").version)'
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ steps.build.outputs.version }}
+          release_name: Release ${{ steps.build.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
