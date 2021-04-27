@@ -1,6 +1,5 @@
 import {
-  LocalNotification,
-  LocalNotificationRequest,
+  LocalNotificationRequest, LocalNotificationsOptions,
 } from './local-notifications.shared'
 
 import {
@@ -17,8 +16,8 @@ import {
 const debug = abstractDebug.bind(null, '(ios)')
 
 export class LocalNotifications extends AbstractLocalNotifications implements DelegateObserver {
-  constructor() {
-    super()
+  constructor(options?: LocalNotificationsOptions) {
+    super(options)
     SharedNotificationDelegate.addObserver(this)
   }
 
@@ -37,29 +36,24 @@ export class LocalNotifications extends AbstractLocalNotifications implements De
     next: () => void,
   ): void {
     const dictionary = response.notification?.request?.content?.userInfo
-    if (dictionary?.valueForKey('$juitLocalNotification') != true) {
+    const json = dictionary?.valueForKey('$juitLocalNotification')
+    if (json) {
+      debug('Handling notification', response.notification.request.identifier)
+      try {
+        this.notify({
+          id: response.notification.request.identifier,
+          title: response.notification.request.content.title,
+          message: response.notification.request.content.body,
+          data: JSON.parse(json),
+        })
+        completionHandler()
+      } catch (error) {
+        debug('Error handling notification', response.notification.request.identifier, error)
+        next()
+      }
+    } else {
       debug('Ignoring notification', response.notification?.request?.identifier)
       next()
-    } else {
-      debug('Handling notification', response.notification.request.identifier)
-
-      const notification: LocalNotification = {
-        id: response.notification.request.identifier,
-        title: response.notification.request.content.title,
-        message: response.notification.request.content.body,
-        data: {},
-      }
-
-      const keys = dictionary.allKeys
-      for (let i = 0; i < keys.count; i ++) {
-        const key = keys.objectAtIndex(i)
-        if (key === '$juitLocalNotification') continue
-        const value = dictionary.valueForKey(key)
-        notification.data[key] = value
-      }
-
-      this.notify(notification)
-      completionHandler()
     }
   }
 
@@ -106,10 +100,8 @@ export class LocalNotifications extends AbstractLocalNotifications implements De
           content.body = message
 
           // Set the "userInfo" dictionary from our notification data
-          // NOTE: keep this as a local variable otherwise assigment won't work
-          const dictionary = NSMutableDictionary.dictionary<string, string | number | boolean>()
-          dictionary.setValueForKey(true, '$juitLocalNotification')
-          if (notification.data) dictionary.addEntriesFromDictionary(<any> notification.data)
+          const json = JSON.stringify(notification.data || {})
+          const dictionary = NSDictionary.dictionaryWithObjectForKey(json, '$juitLocalNotification')
           content.userInfo = dictionary
 
           // Create a trigger, the iOS notification request...
