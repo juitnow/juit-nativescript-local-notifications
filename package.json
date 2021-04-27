@@ -37,5 +37,19 @@
   },
   "dependencies": {
     "@nativescript/shared-notification-delegate": "^1.0.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/juitnow/juit-nativescript-local-notifications.git"
+  },
+  "keywords": [
+    "ecosystem:NativeScript",
+    "NativeScript",
+    "Notifications",
+    "Local Notifications"
+  ],
+  "bugs": {
+    "url": "https://github.com/juitnow/juit-nativescript-local-notifications/issues"
+  },
+  "homepage": "https://github.com/juitnow/juit-nativescript-local-notifications#readme"
 }
