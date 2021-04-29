@@ -9,6 +9,7 @@ import {
 import {
   AbstractLocalNotifications,
   debug as abstractDebug,
+  LocalNotificationsError,
 } from './local-notifications.abstract'
 
 import { Application } from '@nativescript/core'
@@ -181,25 +182,30 @@ export class LocalNotifications extends AbstractLocalNotifications {
       if (! this._action) throw new Error('Not yet initialized (action)')
       if (! this._workManager) throw new Error('Not yet initialized (workManager)')
 
-      const data = new androidx.work.Data.Builder()
-        .putString('title', notification.title || '')
-        .putString('message', notification.message)
-        .putString('data', JSON.stringify(notification.data || {}))
-        .putString('activity', Application.android.startActivity.getClass().getName())
-        .putString('action', this._action)
-        .putInt('icon', this._icon)
-        .putInt('color', this._color)
-        .build()
+      try {
+        const data = new androidx.work.Data.Builder()
+          .putString('title', notification.title || '')
+          .putString('message', notification.message)
+          .putString('data', JSON.stringify(notification.data || {}))
+          .putString('activity', Application.android.startActivity.getClass().getName())
+          .putString('action', this._action)
+          .putInt('icon', this._icon)
+          .putInt('color', this._color)
+          .build()
 
-      const request = new androidx.work.OneTimeWorkRequest.Builder(LocalNotificationsWorker.class)
-        .setInitialDelay(seconds, java.util.concurrent.TimeUnit.SECONDS)
-        .setInputData(data)
-        .build()
+        const request = new androidx.work.OneTimeWorkRequest.Builder(LocalNotificationsWorker.class)
+          .setInitialDelay(seconds, java.util.concurrent.TimeUnit.SECONDS)
+          .setInputData(data)
+          .build()
 
-      debug('Scheduling notification', request.getId(), 'in', seconds, 'sec.')
+        debug('Scheduling notification', request.getId(), 'in', seconds, 'sec.')
 
-      this._workManager.enqueue(request)
-      resolve(request.getId().toString())
+        this._workManager.enqueue(request)
+        resolve(request.getId().toString())
+      } catch (error) {
+        if (error instanceof Error) throw error
+        throw new LocalNotificationsError('Error scheduling notification', error)
+      }
     })
   }
 

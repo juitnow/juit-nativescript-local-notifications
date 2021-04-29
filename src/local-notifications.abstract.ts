@@ -19,6 +19,18 @@ export function debug(...args: any[]) {
 }
 
 /* ========================================================================== *
+ * ERRORS                                                                     *
+ * ========================================================================== */
+export class LocalNotificationsError extends Error implements NativeScriptError {
+  readonly nativeError: any
+
+  constructor(message: string, nativeError?: any) {
+    super(message)
+    if (nativeError) this.nativeError = nativeError
+  }
+}
+
+/* ========================================================================== *
  * MAIN LOCAL NOTIFICATIONS ABSTRACTION                                       *
  * ========================================================================== */
 export abstract class AbstractLocalNotifications extends LocalNotifications {

@@ -5,6 +5,7 @@ import {
 import {
   AbstractLocalNotifications,
   debug as abstractDebug,
+  LocalNotificationsError,
 } from './local-notifications.abstract'
 
 import {
@@ -76,7 +77,7 @@ export class LocalNotifications extends AbstractLocalNotifications implements De
   /* ======================================================================== */
 
   scheduleNative(notification: LocalNotificationRequest, seconds: number) {
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<string | void>((resolve, reject) => {
       // eslint-disable-next-line new-cap
       const id = NSUUID.UUID().UUIDString.toUpperCase()
 
@@ -85,10 +86,10 @@ export class LocalNotifications extends AbstractLocalNotifications implements De
       this.notificationCenter.requestAuthorizationWithOptionsCompletionHandler(
         UNAuthorizationOptions.Alert | UNAuthorizationOptions.Sound,
         (result, error) => {
-          if (error) return reject(error)
+          if (error) return reject(new LocalNotificationsError('Error requesting permissions', error))
           if (! result) {
             debug('Local Notification authorization request denied')
-            return
+            return resolve()
           }
 
           // Now we can start building our notification
@@ -111,7 +112,7 @@ export class LocalNotifications extends AbstractLocalNotifications implements De
           // ... and finaly schedule natively!
           debug('Scheduling notification', id, 'in', seconds, 'sec.')
           this.notificationCenter.addNotificationRequestWithCompletionHandler(request, (error) => {
-            if (error) return reject(error)
+            if (error) return reject(new LocalNotificationsError('Error scheduling notification', error))
             return resolve(id)
           })
         })
