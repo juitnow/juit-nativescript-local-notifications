@@ -53,7 +53,7 @@ export class LocalNotifications extends AbstractLocalNotifications implements De
         next()
       }
     } else {
-      debug('Ignoring notification', response.notification?.request?.identifier)
+      debug('Ignoring notification response', response.notification?.request?.identifier)
       next()
     }
   }
@@ -65,12 +65,12 @@ export class LocalNotifications extends AbstractLocalNotifications implements De
     next: () => void,
   ): void {
     const dictionary = notification?.request?.content?.userInfo
-    if (dictionary?.valueForKey('$juitLocalNotification') != true) {
-      debug('Ignoring notification', notification?.request?.identifier)
-      next()
-    } else {
+    if (dictionary?.valueForKey('$juitLocalNotification')) {
       debug('Presenting notification', notification.request.identifier)
       completionHandler(UNNotificationPresentationOptions.Alert | UNNotificationPresentationOptions.Sound)
+    } else {
+      debug('Ignoring notification presentation', notification?.request?.identifier)
+      next()
     }
   }
 
