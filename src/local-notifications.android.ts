@@ -56,7 +56,7 @@ class LocalNotificationsWorker extends androidx.work.Worker {
 
       if (title) intent.putExtra('title', title)
 
-      const pendingIntent = android.app.PendingIntent.getActivity(context, ++ counter, intent, 0)
+      const pendingIntent = android.app.PendingIntent.getActivity(context, ++ counter, intent, android.app.PendingIntent.FLAG_IMMUTABLE)
 
       const builder = new androidx.core.app.NotificationCompat.Builder(context, CHANNEL_ID)
         .setSmallIcon(icon)
@@ -73,7 +73,7 @@ class LocalNotificationsWorker extends androidx.work.Worker {
       manager.notify(id.toString(), ++ counter, builder.build())
 
       return androidx.work.ListenableWorker.Result.success()
-    } catch (error) {
+    } catch (error: any) {
       console.log('Error displaying notification', error, error.stackTrace)
       return androidx.work.ListenableWorker.Result.failure()
     }
